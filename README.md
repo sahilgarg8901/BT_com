@@ -1,0 +1,1 @@
+# This repository contains the Application and other stuffs for bluetooth communication.
