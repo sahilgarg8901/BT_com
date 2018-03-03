@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">BT_App</string>
     <string name="refresh">REFRESH</string>
+    <string name="off">OFF</string>
+    <string name="disconnect">DISCONNECT</string>
+    <string name="on">ON</string>
 </resources>

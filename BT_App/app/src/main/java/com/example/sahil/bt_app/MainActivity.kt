@@ -13,34 +13,34 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 
 class MainActivity : AppCompatActivity() {
-    var m_BluetoothAdapter: BluetoothAdapter? = null
-    lateinit var m_PairedDevices: Set<BluetoothDevice>
-    val REQUEST_ENABLE_BLUETOOTH = 5 // it can be any number greater than 0
+    private var mBluetoothAdapter: BluetoothAdapter? = null
+    private lateinit var mPairedDevices: Set<BluetoothDevice>
+    private val requestEnableBluetooth = 5 // it can be any number greater than 0
 
     companion object {
-        val EXTRA_ADDRESS : String = "Device_address"
+        const val EXTRA_ADDRESS : String = "Device_address"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        m_BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        if (m_BluetoothAdapter == null){
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (mBluetoothAdapter == null){
             toast("This device doesn't support Bluetooth.")
             return
         }
-        if (!m_BluetoothAdapter!!.isEnabled){
+        if (!mBluetoothAdapter!!.isEnabled){
             val enableKBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableKBluetoothIntent,REQUEST_ENABLE_BLUETOOTH)
+            startActivityForResult(enableKBluetoothIntent, requestEnableBluetooth)
         }
         SelectDeviceRefresh.setOnClickListener { PairedDeviceList() }
     }
     private fun PairedDeviceList(){
-        m_PairedDevices = m_BluetoothAdapter!!.bondedDevices
+        mPairedDevices = mBluetoothAdapter!!.bondedDevices
         val DeviceList : ArrayList<BluetoothDevice> = ArrayList()
-        if (m_PairedDevices.isEmpty()){
-            for (device : BluetoothDevice in m_PairedDevices){
+        if (mPairedDevices.isEmpty()){
+            for (device : BluetoothDevice in mPairedDevices){
                 DeviceList.add(device)
                 Log.i("device",""+device)
             }
@@ -60,14 +60,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
             super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BLUETOOTH){
+        if (requestCode == requestEnableBluetooth){
             if (resultCode == Activity.RESULT_OK){
-                if (m_BluetoothAdapter!!.isEnabled){
+                if (mBluetoothAdapter!!.isEnabled){
                     toast("bluetooth has been enabled")
                 } else {
                     toast("bluetooth has been disabled")
                 }
-            } else if (resultCode == Activity.RESULT_CANCELED){
+            } else   /* if (resultCode == Activity.RESULT_CANCELED) */   {
                 toast("bluetooth enabling has been canceled.")
             }
         }
