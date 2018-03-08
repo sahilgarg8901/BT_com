@@ -32,3 +32,4 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'org.jetbrains.anko:anko:0.10.4'
 }
+

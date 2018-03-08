@@ -15,7 +15,7 @@ import org.jetbrains.anko.toast
 class MainActivity : AppCompatActivity() {
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private lateinit var mPairedDevices: Set<BluetoothDevice>
-    private val requestEnableBluetooth = 5 // it can be any number greater than 0
+    private val requestEnableBluetooth = 5 // it can be any nu /*val AdapTer = ArrayAdapter(this,android.R.layout.simple_list_item_1,DeviceList)*/mber greater than 0
 
     companion object {
         const val EXTRA_ADDRESS : String = "Device_address"
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     private fun PairedDeviceList(){
         mPairedDevices = mBluetoothAdapter!!.bondedDevices
         val DeviceList : ArrayList<BluetoothDevice> = ArrayList()
-        if (mPairedDevices.isEmpty()){
+        if (!mPairedDevices.isEmpty()){
             for (device : BluetoothDevice in mPairedDevices){
                 DeviceList.add(device)
                 Log.i("device",""+device)

@@ -9,14 +9,14 @@ import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import kotlinx.android.synthetic.main.activity_control.*
 import java.io.IOException
 import java.util.*
 
 class ControlActivity : AppCompatActivity() {
 
     companion object {
-        var m_myUUID: UUID = UUID.fromString("  ")// fill the uuid of your bluetooth device
+        var m_myUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")// fill the uuid of your bluetooth device
         var m_bluetoothSocket: BluetoothSocket? = null
         lateinit var m_progress: ProgressDialog
         lateinit var m_bluetoothAdapter: BluetoothAdapter
@@ -30,19 +30,21 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
-
+        OnButton.setOnClickListener { sendCommand("ON") }
+        OffButton.setOnClickListener { sendCommand("OFF") }
+        DisconnectButton.setOnClickListener{ disconnect() }
 
     }
 
-    private fun onButtonClicked(view: View){
-        sendCommand("a")
+    /*private fun onButtonClicked(view: View){
+        sendCommand("ON")
     }
     private fun offButtonClicked(view: View){
-        sendCommand("b")
+        sendCommand("OFF")
     }
     private fun disconnectButtonClicked(view: View){
         disconnect()
-    }
+    }*/
 
     private fun sendCommand(input: String){
         if (m_bluetoothSocket!= null){
@@ -87,12 +89,16 @@ class ControlActivity : AppCompatActivity() {
                     val device : BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(m_address)
                     m_bluetoothSocket =device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+                    Log.d("hello-0","hello-0")
                     m_bluetoothSocket!!.connect()
+                    Log.d("hello-1","hello-1")
                 }
             } catch (e: IOException){
                 connectSuccess = false
                 e.printStackTrace()
+                Log.d("hello-2",e.toString())
             }
+
             return null
         }
 
