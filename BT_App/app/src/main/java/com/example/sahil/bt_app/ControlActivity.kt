@@ -22,6 +22,7 @@ class ControlActivity : AppCompatActivity() {
         lateinit var m_bluetoothAdapter: BluetoothAdapter
         var m_isConnected : Boolean = false
         lateinit var m_address :String
+        var LightStatus = 0
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,22 +31,19 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
-        OnButton.setOnClickListener { sendCommand("ON") }
-        OffButton.setOnClickListener { sendCommand("OFF") }
+        PowerButton.setOnClickListener {
+            if(LightStatus == 0){
+                sendCommand("ON")
+                LightStatus = 1
+            }else {
+                sendCommand("OFF")
+                LightStatus = 0
+            }
+        }/*
+        OffButton.setOnClickListener { sendCommand("OFF") }*/
         DisconnectButton.setOnClickListener{ disconnect() }
 
     }
-
-    /*private fun onButtonClicked(view: View){
-        sendCommand("ON")
-    }
-    private fun offButtonClicked(view: View){
-        sendCommand("OFF")
-    }
-    private fun disconnectButtonClicked(view: View){
-        disconnect()
-    }*/
-
     private fun sendCommand(input: String){
         if (m_bluetoothSocket!= null){
             try {
