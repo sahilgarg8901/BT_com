@@ -5,13 +5,16 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.graphics.Color
 import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_control.*
+import yuku.ambilwarna.AmbilWarnaDialog
 import java.io.IOException
 import java.util.*
+import kotlin.collections.ArrayList
 
 class ControlActivity : AppCompatActivity() {
 
@@ -22,6 +25,8 @@ class ControlActivity : AppCompatActivity() {
         lateinit var m_bluetoothAdapter: BluetoothAdapter
         var m_isConnected : Boolean = false
         lateinit var m_address :String
+        var DefaultColor : Int = Color.WHITE
+        var rgb: ArrayList<Int> = arrayListOf(255,255,255)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,25 +35,22 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
-        OnButton.setOnClickListener { sendCommand("ON") }
-        OffButton.setOnClickListener { sendCommand("OFF") }
+        // sent msg format  : "status#r_value#g_value#b_value#"
+        OnButton.setOnClickListener {
+            sendCommand(ColorTOrgb(DefaultColor))
+        }
+        OffButton.setOnClickListener { sendCommand("0") }
+        ColorButton.setOnClickListener {
+            openColorPicker()
+        }
+
         DisconnectButton.setOnClickListener{ disconnect() }
 
     }
-
-    /*private fun onButtonClicked(view: View){
-        sendCommand("ON")
-    }
-    private fun offButtonClicked(view: View){
-        sendCommand("OFF")
-    }
-    private fun disconnectButtonClicked(view: View){
-        disconnect()
-    }*/
-
     private fun sendCommand(input: String){
         if (m_bluetoothSocket!= null){
             try {
+                Log.d("color", input)
                 m_bluetoothSocket!!.outputStream.write(input.toByteArray())
             } catch (e: IOException){
                 e.printStackTrace()
@@ -67,6 +69,26 @@ class ControlActivity : AppCompatActivity() {
         }
         finish()          // to close the current activity and come back to the previous one
     }
+    private fun openColorPicker() {
+        val ColorPicker = AmbilWarnaDialog(this,DefaultColor, object : AmbilWarnaDialog.OnAmbilWarnaListener{
+            override fun onCancel(dialog: AmbilWarnaDialog){
+
+            }
+            override fun onOk(dialog: AmbilWarnaDialog, color: Int) {
+                DefaultColor = color
+                sendCommand(ColorTOrgb(DefaultColor))
+                MainLayout.setBackgroundColor(DefaultColor)
+            }
+        })
+        ColorPicker.show()
+    }
+    private fun ColorTOrgb(color : Int):String {
+        rgb[0] = DefaultColor shr 16 and 0xff
+        rgb[1] = DefaultColor shr 8 and 0xff
+        rgb[2] = DefaultColor and 0xff
+        return "1#${rgb[0]}#${rgb[1]}#${rgb[2]}#"
+
+    }
 
    // the following is the subClass responsible for Connecting to the bluetooth device
 
@@ -79,7 +101,7 @@ class ControlActivity : AppCompatActivity() {
 
         override fun onPreExecute() {
             super.onPreExecute()
-            m_progress = ProgressDialog.show(context,"connecting", "please wait")
+            m_progress = ProgressDialog.show(context,"Connecting", "Please Wait")
         }
 
         override fun doInBackground(vararg params: Void?): String?   {
