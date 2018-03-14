@@ -5,11 +5,16 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory
 import kotlinx.android.synthetic.main.activity_control.*
+import org.jetbrains.anko.backgroundDrawable
 import java.io.IOException
 import java.util.*
 
@@ -31,17 +36,42 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
+
+        /*val rounded = RoundedBitmapDrawableFactory.create(resources,"drawable/ic_lock_power_off")
+        rounded.isCircular = true
+        PowerSignButton.setImageDrawable(rounded)*/
+
+        /*val bitmap1 = BitmapFactory.decodeResource(resources, R.drawable.round_button_off)
+        val rounded1 = RoundedBitmapDrawableFactory.create(resources, bitmap1)
+        PowerSignButton.setImageDrawable(rounded1)
+        val bitmap2 = BitmapFactory.decodeResource(resources, R.drawable.round_button_on)
+        val rounded2 = RoundedBitmapDrawableFactory.create(resources, bitmap2)*/
+
+        /*PowerSignButton.backgroundDrawable.apply { R.drawable.round_button_off }*//*
+        PowerSignButton.background.apply { R.drawable.round_button_off }*/
+
+
+        /*PowerButton.setBackgroundColor(Color.RED)*/
+       /* PowerSignButton.background = Drawable.createFromPath("R.drawable.round_button_off")*/
         PowerButton.setOnClickListener {
             if(LightStatus == 0){
-                sendCommand("ON")
+                sendCommand("ON")/*
+                PowerButton.setBackgroundColor(Color.GREEN)*/
                 LightStatus = 1
+
+                /*PowerSignButton.setImageDrawable(rounded2)*/
             }else {
-                sendCommand("OFF")
+                sendCommand("OFF")/*
+                PowerButton.setBackgroundColor(Color.RED)*/
                 LightStatus = 0
+
+               /* PowerSignButton.setImageDrawable(rounded1)*/
             }
         }/*
         OffButton.setOnClickListener { sendCommand("OFF") }*/
-        DisconnectButton.setOnClickListener{ disconnect() }
+        DisconnectButton.setOnClickListener{
+            disconnect()
+        }
 
     }
     private fun sendCommand(input: String){
