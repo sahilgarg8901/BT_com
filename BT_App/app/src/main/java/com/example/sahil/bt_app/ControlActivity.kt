@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.graphics.Color
 import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -31,13 +32,21 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
+        sendCommand("OFF")
+        LightStatus = 0
+        PowerButton.setBackgroundColor(Color.parseColor("#FD0000"))
+        PowerButton.text = "OFF"
         PowerButton.setOnClickListener {
             if(LightStatus == 0){
                 sendCommand("ON")
                 LightStatus = 1
+                PowerButton.setBackgroundColor(Color.parseColor("#167415"))
+                PowerButton.text = "ON"
             }else {
                 sendCommand("OFF")
                 LightStatus = 0
+                PowerButton.setBackgroundColor(Color.parseColor("#FD0000"))
+                PowerButton.text = "OFF"
             }
         }/*
         OffButton.setOnClickListener { sendCommand("OFF") }*/
