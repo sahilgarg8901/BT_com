@@ -5,4 +5,6 @@
     <string name="disconnect">DISCONNECT</string>
     <string name="on">ON</string>
     <string name="setcolor">SET COLOR</string>
+    <string name="enterHere">Enter Here</string>
+    <string name="send">Send</string>
 </resources>

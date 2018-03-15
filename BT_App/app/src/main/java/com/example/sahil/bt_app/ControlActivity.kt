@@ -46,6 +46,12 @@ class ControlActivity : AppCompatActivity() {
 
         DisconnectButton.setOnClickListener{ disconnect() }
 
+        sendCommandBtn.setOnClickListener {
+            if(!CommandBox.text.isEmpty()){
+                sendCommand(CommandBox.text.toString())
+            }
+        }
+
     }
     // Defaualt Baud Rate for Bluetooth 4.0 is -> "38400".
     private fun sendCommand(input: String){
