@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BT_App</string>
+    <string name="app_name">INDIACom 2018 - Demo</string>
     <string name="refresh">REFRESH</string>
     <string name="disconnect">DISCONNECT</string>
     <string name="power">ON/OFF</string>

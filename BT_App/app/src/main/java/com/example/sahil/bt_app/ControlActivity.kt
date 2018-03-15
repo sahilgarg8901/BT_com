@@ -34,22 +34,21 @@ class ControlActivity : AppCompatActivity() {
         ConnectToDevice(this).execute()
         sendCommand("OFF")
         LightStatus = 0
-        PowerButton.setBackgroundColor(Color.parseColor("#FD0000"))
-        PowerButton.text = "OFF"
+        PowerButton.setBackgroundColor(Color.parseColor("#167415"))
+        PowerButton.text = "ON"
         PowerButton.setOnClickListener {
             if(LightStatus == 0){
                 sendCommand("ON")
                 LightStatus = 1
-                PowerButton.setBackgroundColor(Color.parseColor("#167415"))
-                PowerButton.text = "ON"
+                PowerButton.setBackgroundColor(Color.parseColor("#FD0000"))
+                PowerButton.text = "OFF"
             }else {
                 sendCommand("OFF")
                 LightStatus = 0
-                PowerButton.setBackgroundColor(Color.parseColor("#FD0000"))
-                PowerButton.text = "OFF"
+                PowerButton.setBackgroundColor(Color.parseColor("#167415"))
+                PowerButton.text = "ON"
             }
-        }/*
-        OffButton.setOnClickListener { sendCommand("OFF") }*/
+        }
         DisconnectButton.setOnClickListener{ disconnect() }
 
     }
