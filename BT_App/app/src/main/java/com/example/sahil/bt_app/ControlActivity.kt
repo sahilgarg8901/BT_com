@@ -32,7 +32,7 @@ class ControlActivity : AppCompatActivity() {
 
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
-        ConnectToDevice(this).execute()
+       // ConnectToDevice(this).execute()
 
 
         PowerButton.setOnClickListener {
@@ -88,7 +88,7 @@ class ControlActivity : AppCompatActivity() {
 
    // the following is the subClass responsible for Connecting to the bluetooth device
 
-    private class ConnectToDevice(c: Context): AsyncTask<Void, Void, String>(){
+   /* private class ConnectToDevice(c: Context): AsyncTask<Void, Void, String>(){
         private var connectSuccess: Boolean = true
         private val context: Context
         init {
@@ -108,7 +108,12 @@ class ControlActivity : AppCompatActivity() {
                     m_bluetoothSocket =device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
                     Log.d("hello-0","hello-0")
-                    m_bluetoothSocket!!.connect()
+                    try {
+                        m_bluetoothSocket!!.connect()
+                    } catch (e : IOException){
+                        Log.i("Socket","Could'nt connect Exception : ${e.toString()}")
+                    }
+
                     Log.d("hello-1","hello-1")
                 }
             } catch (e: IOException){
@@ -129,7 +134,7 @@ class ControlActivity : AppCompatActivity() {
             }
             m_progress.dismiss()
         }
-    }
+    }*/
     inner class ThreadedWrite (msg: String) : Runnable {
        private var Msg : String? = ""
         val sendThread : Thread = Thread()
@@ -147,6 +152,78 @@ class ControlActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
             }
+        }
+    }
+
+    /*inner class MakeConnection(address: String) : Thread() {
+            private var mmDevice : BluetoothDevice
+            private var mm_address : String
+            var mm_bluetoothAdapter: BluetoothAdapter
+            private var mmSocket : BluetoothSocket? = null
+            private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")// fill the uuid of your bluetooth device
+
+            init {
+                var tmp : BluetoothSocket? = null
+                mm_address = address
+                mm_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                mmDevice = mm_bluetoothAdapter.getRemoteDevice(mm_address)
+                try {
+                    tmp = mmDevice.createInsecureRfcommSocketToServiceRecord(MY_UUID)
+                } catch (e: IOException){
+                    Log.i("Socket",e.toString())
+                }
+                mmSocket = tmp
+            }
+            override fun run() {
+                BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+                try {
+                    mmSocket!!.connect()
+                } catch (e: IOException){
+                    try {
+                        mmSocket!!.close()
+                    }catch (ex : IOException){
+                        Log.i("Socket","Could'nt connect Exception : ${e.toString()}")
+                    }
+                    return
+                }
+            }
+        }*/
+
+
+    inner class MakeConnection(c : Context) : Thread() {
+        private var connectSuccess: Boolean = true
+        private val context: Context
+        init {
+            this.context= c
+            m_progress = ProgressDialog.show(context,"connecting", "please wait")
+        }
+        override fun run() {
+            try {
+                if (m_bluetoothSocket!= null || !m_isConnected){
+                    m_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                    val device : BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(m_address)
+                    m_bluetoothSocket =device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
+                    BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+                    Log.d("hello-0","hello-0")
+                    try {
+                        m_bluetoothSocket!!.connect()
+                    } catch (e : IOException){
+                        Log.i("Socket","Could'nt connect Exception : ${e.toString()}")
+                    }
+
+                    Log.d("hello-1","hello-1")
+                }
+            } catch (e: IOException){
+                connectSuccess = false
+                e.printStackTrace()
+                Log.d("hello-2",e.toString())
+            }
+            if (!connectSuccess){
+                Log.i("data", "could'nt connect")
+            } else {
+                m_isConnected = true
+            }
+            m_progress.dismiss()
         }
     }
 }
