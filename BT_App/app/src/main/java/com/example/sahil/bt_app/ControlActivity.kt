@@ -23,6 +23,8 @@ class ControlActivity : AppCompatActivity() {
         var m_isConnected : Boolean = false
         lateinit var m_address :String
         var LightStatus = 0
+        /*var BT_response:String= ""
+        lateinit var BT_byte_array:ByteArray*/
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,8 @@ class ControlActivity : AppCompatActivity() {
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
         ConnectToDevice(this).execute()
+
+
         PowerButton.setOnClickListener {
             if(LightStatus == 0){
                 sendCommand("ON")
@@ -42,15 +46,32 @@ class ControlActivity : AppCompatActivity() {
         }
         DisconnectButton.setOnClickListener{ disconnect() }
 
+       /* while (true){
+
+            if (m_bluetoothSocket!= null){
+                try {*//*
+                    if (m_bluetoothSocket!!.inputStream.available() != 0)*//*
+                    m_bluetoothSocket!!.inputStream.read(BT_byte_array)
+                    BT_response= BT_byte_array.toString()
+                } catch (e: IOException){
+                    e.printStackTrace()
+                }
+            }
+        }*/
+
     }
     private fun sendCommand(input: String){
         if (m_bluetoothSocket!= null){
-            try {
+            /*try {
                 m_bluetoothSocket!!.outputStream.write(input.toByteArray())
+                m_bluetoothSocket!!.inputStream.read(BT_byte_array)
+                BT_response= BT_byte_array.toString()
             } catch (e: IOException){
                 e.printStackTrace()
-            }
+            }*/
+            val sendClassInstance : ThreadedWrite = ThreadedWrite(input)
         }
+
     }
     private fun disconnect() {
         if (m_bluetoothSocket != null) {
@@ -107,6 +128,25 @@ class ControlActivity : AppCompatActivity() {
                 m_isConnected = true
             }
             m_progress.dismiss()
+        }
+    }
+    inner class ThreadedWrite (msg: String) : Runnable {
+       private var Msg : String? = ""
+        val sendThread : Thread = Thread()
+        init {
+            this.Msg = msg
+            /*val sendThread : Thread = Thread("sendCommandThread")*/
+            this.sendThread.name = "sendCommandThread"
+            sendThread.start()
+        }
+        override fun run() {
+            if (m_isConnected && m_bluetoothSocket != null){
+                try {
+                    m_bluetoothSocket!!.outputStream.write(this.Msg!!.toByteArray())
+                } catch (e: IOException){
+                    e.printStackTrace()
+                }
+            }
         }
     }
 }
