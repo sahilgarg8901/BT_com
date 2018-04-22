@@ -20,33 +20,36 @@ class ControlActivity : AppCompatActivity() {
         var m_bluetoothSocket: BluetoothSocket? = null
         lateinit var m_progress: ProgressDialog
         lateinit var m_bluetoothAdapter: BluetoothAdapter
-        var m_isConnected : Boolean = false
-        lateinit var m_address :String
+        var m_isConnected: Boolean = false
+        lateinit var m_address: String
         var LightStatus = 0
-        /*var BT_response:String= ""
-        lateinit var BT_byte_array:ByteArray*/
+        var BT_response: String = ""
+        lateinit var BT_byte_array: ByteArray
+        lateinit var sendClassInstance: ThreadedWrite
+        lateinit var ReadThread : ConnectedThread
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
 
         m_address = intent.getStringExtra(MainActivity.EXTRA_ADDRESS)
 
-       // ConnectToDevice(this).execute()
+        // ConnectToDevice(this).execute()
 
 
         PowerButton.setOnClickListener {
-            if(LightStatus == 0){
+            if (LightStatus == 0) {
                 sendCommand("ON")
                 LightStatus = 1
-            }else {
+            } else {
                 sendCommand("OFF")
                 LightStatus = 0
             }
         }
-        DisconnectButton.setOnClickListener{ disconnect() }
+        DisconnectButton.setOnClickListener { disconnect() }
 
-       /* while (true){
+        /* while (true){
 
             if (m_bluetoothSocket!= null){
                 try {*//*
@@ -60,8 +63,9 @@ class ControlActivity : AppCompatActivity() {
         }*/
 
     }
-    private fun sendCommand(input: String){
-        if (m_bluetoothSocket!= null){
+
+    private fun sendCommand(input: String) {
+        if (m_bluetoothSocket != null) {
             /*try {
                 m_bluetoothSocket!!.outputStream.write(input.toByteArray())
                 m_bluetoothSocket!!.inputStream.read(BT_byte_array)
@@ -69,26 +73,31 @@ class ControlActivity : AppCompatActivity() {
             } catch (e: IOException){
                 e.printStackTrace()
             }*/
-            val sendClassInstance : ThreadedWrite = ThreadedWrite(input)
+            sendClassInstance = ThreadedWrite(input)
         }
 
     }
+
     private fun disconnect() {
         if (m_bluetoothSocket != null) {
             try {
                 m_bluetoothSocket!!.close()
                 m_bluetoothSocket = null
                 m_isConnected = false
+                if (ReadThread.isAlive){
+                    ReadThread.stop()
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
+                Log.i("Cancelling Error", e.toString())
             }
         }
         finish()          // to close the current activity and come back to the previous one
     }
 
-   // the following is the subClass responsible for Connecting to the bluetooth device
+    // the following is the subClass responsible for Connecting to the bluetooth device
 
-   /* private class ConnectToDevice(c: Context): AsyncTask<Void, Void, String>(){
+    /* private class ConnectToDevice(c: Context): AsyncTask<Void, Void, String>(){
         private var connectSuccess: Boolean = true
         private val context: Context
         init {
@@ -135,25 +144,7 @@ class ControlActivity : AppCompatActivity() {
             m_progress.dismiss()
         }
     }*/
-    inner class ThreadedWrite (msg: String) : Runnable {
-       private var Msg : String? = ""
-        val sendThread : Thread = Thread()
-        init {
-            this.Msg = msg
-            /*val sendThread : Thread = Thread("sendCommandThread")*/
-            this.sendThread.name = "sendCommandThread"
-            sendThread.start()
-        }
-        override fun run() {
-            if (m_isConnected && m_bluetoothSocket != null){
-                try {
-                    m_bluetoothSocket!!.outputStream.write(this.Msg!!.toByteArray())
-                } catch (e: IOException){
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
+
 
     /*inner class MakeConnection(address: String) : Thread() {
             private var mmDevice : BluetoothDevice
@@ -190,40 +181,91 @@ class ControlActivity : AppCompatActivity() {
         }*/
 
 
-    inner class MakeConnection(c : Context) : Thread() {
+    inner class MakeConnection(c: Context) : Thread() {
         private var connectSuccess: Boolean = true
         private val context: Context
+
         init {
-            this.context= c
-            m_progress = ProgressDialog.show(context,"connecting", "please wait")
+            this.context = c
+            m_progress = ProgressDialog.show(context, "connecting", "please wait")
         }
+
         override fun run() {
             try {
-                if (m_bluetoothSocket!= null || !m_isConnected){
+                if (m_bluetoothSocket != null || !m_isConnected) {
                     m_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                    val device : BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(m_address)
-                    m_bluetoothSocket =device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
+                    val device: BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(m_address)
+                    m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
-                    Log.d("hello-0","hello-0")
+                    Log.d("hello-0", "hello-0")
                     try {
                         m_bluetoothSocket!!.connect()
-                    } catch (e : IOException){
-                        Log.i("Socket","Could'nt connect Exception : ${e.toString()}")
+                    } catch (e: IOException) {
+                        Log.i("Socket", "Could'nt connect Exception : ${e.toString()}")
                     }
 
-                    Log.d("hello-1","hello-1")
+                    Log.d("hello-1", "hello-1")
                 }
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 connectSuccess = false
                 e.printStackTrace()
-                Log.d("hello-2",e.toString())
+                Log.d("hello-2", e.toString())
             }
-            if (!connectSuccess){
+            if (!connectSuccess) {
                 Log.i("data", "could'nt connect")
             } else {
                 m_isConnected = true
             }
             m_progress.dismiss()
+            ReadThread = ConnectedThread()
+        }
+    }
+
+    inner class ConnectedThread() : Thread() {
+        var mm_bluetoothSocket: BluetoothSocket? = null
+
+        init {
+            if (m_isConnected) {
+                mm_bluetoothSocket = m_bluetoothSocket
+            }
+        }
+
+        override fun run() {
+            while (true) {
+                if (mm_bluetoothSocket != null) {
+                    try {
+                        if (mm_bluetoothSocket!!.inputStream.available() != 0)
+                            mm_bluetoothSocket!!.inputStream.read(BT_byte_array)
+                        BT_response = BT_byte_array.toString()
+                        Log.d("Received Message", BT_response)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        Log.i("Reading Error", e.toString())
+                    }
+                }
+            }
+        }
+    }
+    inner class ThreadedWrite(msg: String) : Runnable {
+        private var Msg: String? = ""
+        val sendThread: Thread = Thread()
+
+        init {
+            this.Msg = msg
+            /*val sendThread : Thread = Thread("sendCommandThread")*/
+            this.sendThread.name = "sendCommandThread"
+            sendThread.start()
+        }
+
+        override fun run() {
+            if (m_isConnected && m_bluetoothSocket != null) {
+                try {
+                    m_bluetoothSocket!!.outputStream.write(this.Msg!!.toByteArray())
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Log.i("Writing Error", e.toString())
+                }
+            }
         }
     }
 }
