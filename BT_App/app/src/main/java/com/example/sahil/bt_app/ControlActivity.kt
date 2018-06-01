@@ -24,9 +24,10 @@ class ControlActivity : AppCompatActivity() {
         lateinit var m_address: String
         var LightStatus = 0
         var BT_response: String = ""
-        lateinit var BT_byte_array: ByteArray
+        var BT_byte_array: ByteArray = ByteArray(1024)
         lateinit var sendClassInstance: ThreadedWrite
         lateinit var ReadThread : ConnectedThread
+        lateinit var EsteblishConnection : MakeConnection
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,8 @@ class ControlActivity : AppCompatActivity() {
             }
         }
         DisconnectButton.setOnClickListener { disconnect() }
+
+        EsteblishConnection = MakeConnection(this)
 
         /* while (true){
 
@@ -73,7 +76,10 @@ class ControlActivity : AppCompatActivity() {
             } catch (e: IOException){
                 e.printStackTrace()
             }*/
+            Log.d("Write", "writing command stage-1")
             sendClassInstance = ThreadedWrite(input)
+            var SendRunnableThread = Thread(sendClassInstance)
+            SendRunnableThread.start()
         }
 
     }
@@ -81,12 +87,19 @@ class ControlActivity : AppCompatActivity() {
     private fun disconnect() {
         if (m_bluetoothSocket != null) {
             try {
+                if (ReadThread.isAlive){
+                    try {
+                        ReadThread.destroy()
+                    } catch (e : Exception){
+                        Log.d("error", "while destroying the ReadThread=${e.toString()}")
+                    }
+                    Log.d("stop", "reading thread stopped")
+                }
                 m_bluetoothSocket!!.close()
                 m_bluetoothSocket = null
                 m_isConnected = false
-                if (ReadThread.isAlive){
-                    ReadThread.stop()
-                }
+                Log.d("stop", "dismissed the connection")
+
             } catch (e: IOException) {
                 e.printStackTrace()
                 Log.i("Cancelling Error", e.toString())
@@ -188,6 +201,7 @@ class ControlActivity : AppCompatActivity() {
         init {
             this.context = c
             m_progress = ProgressDialog.show(context, "connecting", "please wait")
+            start()
         }
 
         override fun run() {
@@ -197,14 +211,14 @@ class ControlActivity : AppCompatActivity() {
                     val device: BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(m_address)
                     m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(m_myUUID)
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
-                    Log.d("hello-0", "hello-0")
+                    Log.d("hello", "establishing bluetooth connection")
                     try {
                         m_bluetoothSocket!!.connect()
                     } catch (e: IOException) {
                         Log.i("Socket", "Could'nt connect Exception : ${e.toString()}")
                     }
 
-                    Log.d("hello-1", "hello-1")
+                    Log.d("hello", "bluetooth connection established")
                 }
             } catch (e: IOException) {
                 connectSuccess = false
@@ -227,6 +241,7 @@ class ControlActivity : AppCompatActivity() {
         init {
             if (m_isConnected) {
                 mm_bluetoothSocket = m_bluetoothSocket
+                start()
             }
         }
 
@@ -234,10 +249,15 @@ class ControlActivity : AppCompatActivity() {
             while (true) {
                 if (mm_bluetoothSocket != null) {
                     try {
-                        if (mm_bluetoothSocket!!.inputStream.available() != 0)
+                        if (mm_bluetoothSocket!!.inputStream.available() != 0){
+                            Log.d("read", "2-found something to read")
                             mm_bluetoothSocket!!.inputStream.read(BT_byte_array)
-                        BT_response = BT_byte_array.toString()
-                        Log.d("Received Message", BT_response)
+                            BT_response = BT_byte_array.toString()
+                            Log.d("Received Message", BT_response)
+                        }
+                        /*if (!BT_byte_array.isEmpty()){
+
+                        }*/
                     } catch (e: IOException) {
                         e.printStackTrace()
                         Log.i("Reading Error", e.toString())
@@ -254,16 +274,19 @@ class ControlActivity : AppCompatActivity() {
             this.Msg = msg
             /*val sendThread : Thread = Thread("sendCommandThread")*/
             this.sendThread.name = "sendCommandThread"
-            sendThread.start()
+
+            Log.d("Write", "writing command stage-2")
+
         }
 
         override fun run() {
+            Log.d("Write", "writing command stage-3")
             if (m_isConnected && m_bluetoothSocket != null) {
                 try {
                     m_bluetoothSocket!!.outputStream.write(this.Msg!!.toByteArray())
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    Log.i("Writing Error", e.toString())
+                    Log.d("Writing Error-2", e.toString())
                 }
             }
         }
